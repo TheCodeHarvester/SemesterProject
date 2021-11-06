@@ -31,7 +31,7 @@ The completed project will
 
 The cooler continuously cycles through a number of states, with state transitions triggered by the user or by events such as temperature changes. The state diagram is shown below.
 
-![states](./states.jpg)
+![states](./state.jpg)
 
 ## State Descriptions
 
