@@ -36,14 +36,13 @@ The cooler continuously cycles through a number of states, with state transition
 ## State Descriptions
 
 * All states except DISABLED
-       * Humidity and temperature should be continuously monitored and reported on the LDC screen
-       * The system should respond to changes in vent position control
-       * Stop button should turn off motor (if on) and system should go to DISABLED state
+  * Humidity and temperature should be continuously monitored and reported on the LDC screen
+  * The system should respond to changes in vent position control
+  * Stop button should turn off motor (if on) and system should go to DISABLED state
 
 * DISABLED
-       * YELLOW LED should be lit
-       * No monitoring of temperature or water should be performed
-       * The start button should be monitored
+  * YELLOW LED should be lit
+  * The start button should be monitored
 
 * IDLE
   * The system should monitor temperature and transition to running state when temperature > threshold (you determine the threshold)
