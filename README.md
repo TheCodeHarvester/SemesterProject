@@ -46,22 +46,22 @@ The cooler continuously cycles through a number of states, with state transition
        * The start button should be monitored
 
 * IDLE
-       * The system should monitor temperature and transition to running state when temperature > threshold (you determine the threshold)
-       * The exact time (using real-time clock) should record transition times
-       * The water level should be continuously monitored and the state changed to error if the level is too low
-       * GREEN LED should be lit
+      * The system should monitor temperature and transition to running state when temperature > threshold (you determine the threshold)
+      * The exact time (using real-time clock) should record transition times
+      * The water level should be continuously monitored and the state changed to error if the level is too low
+      * GREEN LED should be lit
 
 * ERROR
-       * RED LED should be turned on (all other LEDs turned off)
-       * The motor should be off and not start regardless of temperature
-       * The system should transition to IDLE as soon as the water is at an acceptable level
-       * An error message should be displayed on LCD
+      * RED LED should be turned on (all other LEDs turned off)
+      * The motor should be off and not start regardless of temperature
+      * The system should transition to IDLE as soon as the water is at an acceptable level
+      * An error message should be displayed on LCD
 
 * RUNNING
-       * BLUE LED should be turned on (all other LEDs turned off)
-       * The motor should be on
-       * The system should transition to IDLE as soon as the temperature drops below the lower threshold
-       * The system should transition to the ERROR state if water becomes too low
+      * BLUE LED should be turned on (all other LEDs turned off)
+      * The motor should be on
+      * The system should transition to IDLE as soon as the temperature drops below the lower threshold
+      * The system should transition to the ERROR state if water becomes too low
 
 # Deliverables
 ## Project Overview Document
