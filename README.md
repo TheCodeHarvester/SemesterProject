@@ -8,7 +8,7 @@ The goal is to create an evaporation cooling system (aka a swamp cooler). In dry
 
 The schematic below shows the general operation of the cooler.
 
-![swamp_schem](./swamp_schem.jpeg)
+![swamp_schem](./swamp_schem.jpg)
 
 Here is an image of a cooler without external panels attached so that the pad and fan are visible.
 
@@ -31,7 +31,7 @@ The completed project will
 
 The cooler continuously cycles through a number of states, with state transitions triggered by the user or by events such as temperature changes. The state diagram is shown below.
 
-![states](./states.jpeg)
+![states](./states.jpg)
 
 ## State Descriptions
 
