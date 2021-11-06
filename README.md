@@ -35,45 +35,45 @@ The cooler continuously cycles through a number of states, with state transition
 
 ## State Descriptions
 
-    All states except DISABLED
-        Humidity and temperature should be continuously monitored and reported on the LDC screen
-        The system should respond to changes in vent position control
-        Stop button should turn off motor (if on) and system should go to DISABLED state
+* All states except DISABLED
+       * Humidity and temperature should be continuously monitored and reported on the LDC screen
+       * The system should respond to changes in vent position control
+       * Stop button should turn off motor (if on) and system should go to DISABLED state
 
-    DISABLED
-        YELLOW LED should be lit
-        No monitoring of temperature or water should be performed
-        The start button should be monitored
+* DISABLED
+       * YELLOW LED should be lit
+       * No monitoring of temperature or water should be performed
+       * The start button should be monitored
 
-    IDLE
-        The system should monitor temperature and transition to running state when temperature > threshold (you determine the threshold)
-        The exact time (using real-time clock) should record transition times
-        The water level should be continuously monitored and the state changed to error if the level is too low
-        GREEN LED should be lit
+* IDLE
+       * The system should monitor temperature and transition to running state when temperature > threshold (you determine the threshold)
+       * The exact time (using real-time clock) should record transition times
+       * The water level should be continuously monitored and the state changed to error if the level is too low
+       * GREEN LED should be lit
 
-    ERROR
-        RED LED should be turned on (all other LEDs turned off)
-        The motor should be off and not start regardless of temperature
-        The system should transition to IDLE as soon as the water is at an acceptable level
-        An error message should be displayed on LCD
+* ERROR
+       * RED LED should be turned on (all other LEDs turned off)
+       * The motor should be off and not start regardless of temperature
+       * The system should transition to IDLE as soon as the water is at an acceptable level
+       * An error message should be displayed on LCD
 
-    RUNNING
-        BLUE LED should be turned on (all other LEDs turned off)
-        The motor should be on
-        The system should transition to IDLE as soon as the temperature drops below the lower threshold
-        The system should transition to the ERROR state if water becomes too low
+* RUNNING
+       * BLUE LED should be turned on (all other LEDs turned off)
+       * The motor should be on
+       * The system should transition to IDLE as soon as the temperature drops below the lower threshold
+       * The system should transition to the ERROR state if water becomes too low
 
 # Deliverables
-##Project Overview Document
+## Project Overview Document
 
 This document is a single PDF containing the following:
 
-    An overview of the design and any constraints on the system (example: operating temperatures, power requirements, etc)
-    Pictures of the final system and a link to a video of the system in operation
-    A complete schematic, and links to all relevant specification sheets for the components used
-    A link to the Github repository
+* An overview of the design and any constraints on the system (example: operating temperatures, power requirements, etc)
+* Pictures of the final system and a link to a video of the system in operation
+* A complete schematic, and links to all relevant specification sheets for the components used
+* A link to the Github repository
 
-##Github Repository
+## Github Repository
 
 The repository link must be turned in to WebCampus. The README for the project must include the group name and the names of all team members. The commits to Github will be reviewed and will be assessed based on the comments (no "asdf" comments!) and the contributions from all team members.
 
