@@ -8,12 +8,22 @@
 
 #define DHTTYPE DH22
 
+//adc read definitions
+volatile unsigned char* my_ADMUX = (unsigned char*) 0x7C;
+volatile unsigned char* my_ADCSRB = (unsigned char*) 0x7B;
+volatile unsigned char* my_ADCSRA = (unsigned char*) 0x7A;
+volatile unsigned int* my_ADC_DATA = (unsigned int*) 0x78;
+volatile unsigned char* my_DIDR0 = (unsigned char*) 0x7E;
+volatile unsigned char* my_DDRF = (unsigned char*) 0x30;
+
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
 uint32_t delayMS;
 
 float tempSet = 0;
 int angleSet = 0;
+
+int waterSensor = A0; //water level sensor pin
 
 // Variables in system
 float temp = 0, humidity = 0;
@@ -44,6 +54,7 @@ void setup() {
 	Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("%"));
 	Serial.println(F("------------------------------------"));
 	delayMS = sensor.min_delay / 1000;
+	adc_init();
 }
 
 void loop() {
@@ -127,10 +138,9 @@ void Temp(){
 }
 
 void WaterLevel(){
-  // Check water level
-  waterLevel = //some reading we will need to get.
-  float minLevel = //some number we will need to decide on.
-  if(waterLevel < minLevel){
+  // Check water level; written to ADC[0]
+  waterLevel = adcRead(0); //read as analog
+  if(waterLevel < 100){
     state = 3;
   }
 }
@@ -151,11 +161,17 @@ void Motor(){
 void Display(){
   if(state == 3){
     // Print Error msg and water level to screen.
-    
+    Serial.print  (F("Warning: Water level too low!"));
   }
   else{
     // Print Temp and humidity to screen.
-    
+    Serial.print(F("Temperature: "));
+    Serial.print(event.temperature);
+    Serial.println(F("°C"));
+	
+    Serial.print(F("Humidity: "));
+    Serial.print(event.relative_humidity);
+    Serial.println(F("%")); 
   }
 }
 
@@ -192,4 +208,42 @@ void Vent(){
 void Save(){
   // Save information on the state change with file writing.
   lastState = state;
+}
+	
+void adc_init()
+{
+   // setup the A register
+  *my_ADCSRA |= 0x85;
+  *my_ADCSRA &= 0x87;
+  // setup the B register
+  *my_ADCSRB &= (0x01 << 6);
+  // setup the MUX Register
+  *my_ADMUX |= (0x01 << 7); //sets MSB bit to 1, REFS1
+  *my_ADMUX &= 0x9C; //sets REFS0 and ADLAR for right justification
+  //disabling digital input for all pins
+  *my_DIDR0 |= 0x81; //disables all digital input pins for buffer
+}
+	
+unsigned int adc_read(unsigned char adc_channel_num)
+{  
+  // clear the channel selection bits (MUX 4:0)
+  *my_ADMUX &= 0xE0;
+
+  // clear the channel selection bits (MUX 5) //MUX 5 is in the ADCSRB register
+  *my_ADCSRB &= 0x77;
+  
+  // set the channel number
+  unsigned int channel_nmbr = channels[adc_channel_num];
+  
+  // set the channel selection bits
+  *my_ADMUX &= channel_nmbr;
+  
+  // set bit 6 of ADCSRA to 1 to start a conversion
+  *my_ADCSRA |= 0x40;
+
+  // wait for the conversion to complete
+  while (( * my_ADCSRA & 0x40) != 0); 
+
+  // return the result in the ADC data register
+  return *my_ADC_DATA; 
 }
