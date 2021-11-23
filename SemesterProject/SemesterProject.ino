@@ -19,6 +19,7 @@ volatile unsigned char* my_DDRF = (unsigned char*) 0x30;
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
 uint32_t delayMS;
+uint8_t readButton(void);
 
 float tempSet = 0;
 int angleSet = 0;
@@ -29,9 +30,13 @@ int waterSensor = A0; //water level sensor pin
 float temp = 0, humidity = 0;
 int lastState = 0, state = 0, waterLevel = 0, vAngle;
 
-
 void setup() {
 	Serial.begin(9600);
+	
+	DDRD &= ~(); // configure input for power button
+	PORTD |= (); //activate pullups
+	DDRB |= (); //configure outputs
+		
 	dht.begin();
 	sensor_t sensor;
 	dht.temperature().getSensor(&sensor);
@@ -62,6 +67,27 @@ void loop() {
   LEDS();
   Vent();
 
+  // loop to verify power button state
+  while(1) {
+	  if (readButton()==1) {
+		  PORTB ^=(); // XOR to toggle
+	  }
+	  _delay_ms(250);
+  }
+  
+  // debounce read value to verify button press is valid
+  uint8_t readButton(void) {
+	  if ((PIND & (1<<)) == 0) {
+		  _delay_ms(25);
+	  }
+  if ((PIND & (1<<)) == 0) {
+	  return 1;
+  }
+  else {
+	  return 0;
+  }
+
+  
   //Check for state change and save info if changed.
   if(lastState != state){
     Save();
