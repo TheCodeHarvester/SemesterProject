@@ -8,8 +8,6 @@
 #include <DHT_U.h>
 #define DHTPIN 2
 #define DHTTYPE DHT22
-DHT_nonblocking dht_sensor(DHTPIN, DHTTYPE);
-
 
 //    Variables     //
 //adc read definitions
@@ -137,7 +135,7 @@ void Display(){
 }
 
 static bool getTemp(float *temp, float *humidity) {
-	if (dht_sensor.measure(temp, humidity) == true)
+	if (dht.measure(temp, humidity) == true)
 	{
 		return (true);
 	}
