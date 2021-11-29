@@ -8,6 +8,7 @@
 #include <DHT_U.h>
 #define DHTPIN 2
 #define DHTTYPE DHT22
+DHT_nonblocking dht_sensor(DHTPIN, DHTTYPE);
 
 
 //    Variables     //
@@ -23,8 +24,7 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 uint32_t delayMS;
 uint8_t readButton(void);
 
-const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+LiquidCrystal lcd(22, 23, 24, 25, 26, 27);
 
 void adc_init()
 {
@@ -90,6 +90,9 @@ void setup() {
   Serial.println(F("------------------------------------"));
   delayMS = sensor.min_delay / 1000;
 */
+
+  lcd.begin(16, 2);
+  
   adc_init();
 }
 
@@ -100,10 +103,17 @@ void loop() {
 }
 
 void Display(){
-  lcd.begin(16, 2);
-  lcd.print("Water Level");
-  lcd.setCursor(0,1);
-  lcd.print("Second line");
+  float temperature;
+  float humidity;
+  
+  getTemp(&temperature, &humidity);
+  lcd.setCursor(0, 0);
+  lcd.print("Temp: ");
+  lcd.print(temperature);
+  lcd.setCursor(0, 1);
+  lcd.print("Humidity: ");
+  lcd.print(humidity);
+  
 /*  sensors_event_t event;
   dht.temperature().getEvent(&event);
   if (isnan(event.temperature)) {
@@ -124,6 +134,14 @@ void Display(){
     Serial.println(F("%"));
   }
 */
+}
+
+static bool getTemp(float *temp, float *humidity) {
+	if (dht_sensor.measure(temp, humidity) == true)
+	{
+		return (true);
+	}
+	return (false);
 }
 
 //////
