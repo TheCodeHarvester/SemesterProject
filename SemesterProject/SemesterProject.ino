@@ -18,11 +18,11 @@ volatile unsigned int* my_ADC_DATA = (unsigned int*) 0x78;
 volatile unsigned char* my_DIDR0 = (unsigned char*) 0x7E;
 volatile unsigned char* my_DDRF = (unsigned char*) 0x30;
 
-DHT_Unified dht(DHTPIN, DHTTYPE);
+DHT dht(DHTPIN, DHTTYPE);
 uint32_t delayMS;
 uint8_t readButton(void);
 
-LiquidCrystal lcd(22, 23, 24, 25, 26, 27);
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 void adc_init()
 {
@@ -90,6 +90,9 @@ void setup() {
 */
 
   lcd.begin(16, 2);
+  dht.begin();
+  
+  lcd.print("Temp:  Humidity:");
   
   adc_init();
 }
@@ -101,16 +104,20 @@ void loop() {
 }
 
 void Display(){
-  float temperature;
-  float humidity;
-  
-  getTemp(&temperature, &humidity);
-  lcd.setCursor(0, 0);
-  lcd.print("Temp: ");
-  lcd.print(temperature);
+  delay(500);
   lcd.setCursor(0, 1);
-  lcd.print("Humidity: ");
-  lcd.print(humidity);
+  float h = dht.readHumidity();
+  float f = dht.readTemperature(true);
+  
+  if (isnan(h) || isnan(f)) {
+	  lcd.print("Error!");
+	  return;
+  }
+  
+  lcd.print(f);
+  lcd.setCursor(7, 1);
+  lcd.print(h);
+}
   
 /*  sensors_event_t event;
   dht.temperature().getEvent(&event);
