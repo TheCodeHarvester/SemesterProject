@@ -25,20 +25,30 @@ volatile unsigned char* my_DDRF = (unsigned char*) 0x30;
 unsigned int waterLevel = 0;
 //------------------------------------------------------------//
 
+//-------------------Humidity & Temp variables --------------//
 DHT dht(DHTPIN, DHTTYPE);
 uint32_t delayMS;
 uint8_t readButton(void);
+float h;
+float f;
+//-----------------------------------------------------------//
 
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+//-----------------------LCD Variable------------------------//
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+//-----------------------------------------------------------//
+
+//---------------------- Motor Variables --------------------//
+
+//-----------------------------------------------------------//
 
 void setup() {
   Serial.begin(9600);
-  lcd.begin(16, 2);
-  dht.begin(); 
+  dht.begin();
+  lcd.begin(16, 2); 
   lcd.print("Temp:  Humidity:");
   adc_init();
 }
-
 
 void loop() {
   delay(delayMS);
@@ -47,10 +57,9 @@ void loop() {
 }
 
 void Display(){
-  delay(500);
   lcd.setCursor(0, 1);
-  float h = dht.readHumidity();
-  float f = dht.readTemperature(true);
+  h = dht.readHumidity();
+  f = dht.readTemperature(true);
   
   if (isnan(h) || isnan(f)) {
 	  lcd.print("Error!");
