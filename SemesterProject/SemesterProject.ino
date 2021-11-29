@@ -3,8 +3,8 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
-#define DHTPIN 2
-#define DHTTYPE DHT22
+#define DHTPIN 6
+#define DHTTYPE DHT11
 
 //                    Variables                               //
 //------adc read definitions For water level -----------------//
@@ -39,7 +39,8 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 //-----------------------------------------------------------//
 
 //---------------------- Motor Variables --------------------//
-
+bool Motor_Direction = true;
+volatile unsigned char* motorAddress = &PORTA;
 //-----------------------------------------------------------//
 
 void setup() {
@@ -48,12 +49,18 @@ void setup() {
   lcd.begin(16, 2); 
   lcd.print("Temp:  Humidity:");
   adc_init();
+  DDRA = B01111000;
 }
 
 void loop() {
   delay(delayMS);
   waterLevel = adc_read(0);
   Display();
+  // Just testing that the angle changes both directions
+  Motor_Direction = true;
+  Change_Angle();
+  Motor_Direction = false;
+  Change_Angle();
 }
 
 void Display(){
@@ -69,6 +76,49 @@ void Display(){
   lcd.print(f);
   lcd.setCursor(7, 1);
   lcd.print(h);
+}
+
+void Change_Angle(){
+  if(Motor_Direction){
+    for (int i = 0; i < 129; i++){
+      *motorAddress = B01000000;
+      delay(5);
+      *motorAddress = B01100000;
+      delay(5);
+      *motorAddress = B00100000;
+      delay(5);
+      *motorAddress = B00110000;
+      delay(5);
+      *motorAddress = B00010000;
+      delay(5);
+      *motorAddress = B00011000;
+      delay(5);
+      *motorAddress = B00001000;
+      delay(5);
+      *motorAddress = B01001000;
+      delay(5); 
+    }
+  }
+  else{
+    for (int i = 0; i < 129; i++){
+      *motorAddress = B00001000;
+      delay(5);
+      *motorAddress = B00011000;
+      delay(5);
+      *motorAddress = B00010000;
+      delay(5); 
+      *motorAddress = B00110000;
+      delay(5);
+      *motorAddress = B00100000;
+      delay(5);
+      *motorAddress = B01100000;
+      delay(5);
+      *motorAddress = B01000000;
+      delay(5);
+      *motorAddress = B01001000;
+      delay(5);
+    }
+  }
 }
 
 void adc_init()
