@@ -1,7 +1,4 @@
-//Settings
-
-//// Working stuff
-
+// Includes //
 #include <LiquidCrystal.h>
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
@@ -9,20 +6,61 @@
 #define DHTPIN 2
 #define DHTTYPE DHT22
 
-//    Variables     //
-//adc read definitions
+//                    Variables                               //
+//------adc read definitions For water level -----------------//
+#define RDA 0x80
+#define TBE 0x20  
+volatile unsigned char *myUCSR0A = (unsigned char *)0x00C0;
+volatile unsigned char *myUCSR0B = (unsigned char *)0x00C1;
+volatile unsigned char *myUCSR0C = (unsigned char *)0x00C2;
+volatile unsigned int  *myUBRR0  = (unsigned int *) 0x00C4;
+volatile unsigned char *myUDR0   = (unsigned char *)0x00C6;
+
 volatile unsigned char* my_ADMUX = (unsigned char*) 0x7C;
 volatile unsigned char* my_ADCSRB = (unsigned char*) 0x7B;
 volatile unsigned char* my_ADCSRA = (unsigned char*) 0x7A;
 volatile unsigned int* my_ADC_DATA = (unsigned int*) 0x78;
 volatile unsigned char* my_DIDR0 = (unsigned char*) 0x7E;
 volatile unsigned char* my_DDRF = (unsigned char*) 0x30;
+unsigned int waterLevel = 0;
+//------------------------------------------------------------//
 
 DHT dht(DHTPIN, DHTTYPE);
 uint32_t delayMS;
 uint8_t readButton(void);
 
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+void setup() {
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  dht.begin(); 
+  lcd.print("Temp:  Humidity:");
+  adc_init();
+}
+
+
+void loop() {
+  delay(delayMS);
+  waterLevel = adc_read(0);
+  Display();
+}
+
+void Display(){
+  delay(500);
+  lcd.setCursor(0, 1);
+  float h = dht.readHumidity();
+  float f = dht.readTemperature(true);
+  
+  if (isnan(h) || isnan(f)) {
+	  lcd.print("Error!");
+	  return;
+  }
+  
+  lcd.print(f);
+  lcd.setCursor(7, 1);
+  lcd.print(h);
+}
 
 void adc_init()
 {
@@ -61,92 +99,3 @@ unsigned int adc_read(unsigned char adc_channel_num)
   // return the result in the ADC data register
   return *my_ADC_DATA; 
 }
-
-void setup() {
-  Serial.begin(9600);
- /* Use this for future variable references
-  dht.begin();
-  sensor_t sensor;
-  dht.temperature().getSensor(&sensor);
-  Serial.println(F("------------------------------------"));
-  Serial.println(F("Temperature Sensor"));
-  Serial.print  (F("Sensor Type: ")); Serial.println(sensor.name);
-  Serial.print  (F("Driver Ver:  ")); Serial.println(sensor.version);
-  Serial.print  (F("Unique ID:   ")); Serial.println(sensor.sensor_id);
-  Serial.print  (F("Max Value:   ")); Serial.print(sensor.max_value); Serial.println(F("°C"));
-  Serial.print  (F("Min Value:   ")); Serial.print(sensor.min_value); Serial.println(F("°C"));
-  Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("°C"));
-  Serial.println(F("------------------------------------"));
-  dht.humidity().getSensor(&sensor);
-  Serial.println(F("Humidity Sensor"));
-  Serial.print  (F("Sensor Type: ")); Serial.println(sensor.name);
-  Serial.print  (F("Driver Ver:  ")); Serial.println(sensor.version);
-  Serial.print  (F("Unique ID:   ")); Serial.println(sensor.sensor_id);
-  Serial.print  (F("Max Value:   ")); Serial.print(sensor.max_value); Serial.println(F("%"));
-  Serial.print  (F("Min Value:   ")); Serial.print(sensor.min_value); Serial.println(F("%"));
-  Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("%"));
-  Serial.println(F("------------------------------------"));
-  delayMS = sensor.min_delay / 1000;
-*/
-
-  lcd.begin(16, 2);
-  dht.begin();
-  
-  lcd.print("Temp:  Humidity:");
-  
-  adc_init();
-}
-
-
-void loop() {
-  delay(delayMS);
-  Display();
-}
-
-void Display(){
-  delay(500);
-  lcd.setCursor(0, 1);
-  float h = dht.readHumidity();
-  float f = dht.readTemperature(true);
-  
-  if (isnan(h) || isnan(f)) {
-	  lcd.print("Error!");
-	  return;
-  }
-  
-  lcd.print(f);
-  lcd.setCursor(7, 1);
-  lcd.print(h);
-}
-  
-/*  sensors_event_t event;
-  dht.temperature().getEvent(&event);
-  if (isnan(event.temperature)) {
-    Serial.println(F("Error reading temperature!"));
-  }
-  else {
-    Serial.print(F("Temperature: "));
-    Serial.print(event.temperature);
-    Serial.println(F("°C"));
-  }
-  dht.humidity().getEvent(&event);
-  if (isnan(event.relative_humidity)) {
-    Serial.println(F("Error reading humidity!"));
-  }
-  else {
-    Serial.print(F("Humidity: "));
-    Serial.print(event.relative_humidity);
-    Serial.println(F("%"));
-  }
-*/
-}
-
-static bool getTemp(float *temp, float *humidity) {
-	if (dht.measure(temp, humidity) == true)
-	{
-		return (true);
-	}
-	return (false);
-}
-
-//////
