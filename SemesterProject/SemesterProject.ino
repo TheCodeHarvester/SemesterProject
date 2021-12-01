@@ -54,7 +54,7 @@ int lights[] = {yellow, green, red, blue};
 //---------------------- Fan Setup -------------------------//
 volatile unsigned char* fanPort = &PORTL;
 int Enable = 0b00000101;
-int Disable = 0b00000001;
+int Disable = 0b00000100;
 //----------------------------------------------------------//
 
 //--------------------- Logic Variables --------------------//
@@ -193,10 +193,12 @@ void Remote_Read(){
 
       case 0xFFA857:    // Volume Down Button pressed
         temp_Threshold -= 1;
+        Serial.println("Temp Threshold is now: " + String(temp_Threshold));
         break;
           
       case 0xFF629D:    // Volume Up Button pressed
         temp_Threshold += 1;
+        Serial.println("Temp Threshold is now: " + String(temp_Threshold));
         break;
 
       case 0xFFA25D:    // Power Button pressed
@@ -288,12 +290,12 @@ bool Temp_Check(){
 
 bool Water_Check(){
   bool change = false;
-  if((State == 0 || State == 1 || State == 3) && adc_read() < 450){
+  if((State == 0 || State == 1 || State == 3) && adc_read() < 800){
     State = 2;
     *ledArray = lights[State];
     change = true;
   }
-  else if(State == 2 && adc_read() > 450){
+  else if(State == 2 && adc_read() > 800){
     State = 1;
     *ledArray = lights[State];
     change = true;
