@@ -36,7 +36,7 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 //---------------------- Motor Variables --------------------//
 bool Motor_Direction = true;
 volatile unsigned char* motorAddress = &PORTA;
-int receiver = 13;
+int receiver = 8;
 IRrecv irrecv(receiver);
 decode_results results;
 int directions[] = {0b01000000, 0b01100000, 0b00100000, 0b00110000, 0b00010000, 0b00011000, 0b00001000, 0b01001000};
@@ -53,8 +53,8 @@ int lights[] = {yellow, green, red, blue};
 
 //---------------------- Fan Setup -------------------------//
 volatile unsigned char* fanPort = &PORTL;
-int on = 0b10000000;
-int off = 0b00000000;
+int Enable = 0b00000101;
+int Disable = 0b00000001;
 //----------------------------------------------------------//
 
 //--------------------- Logic Variables --------------------//
@@ -68,19 +68,20 @@ String SN[] = {"Disabled", "Idle", "Error", "Running"};
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial);
-  dht.begin();
   lcd.begin(16, 2); 
   lcd.print("Temp:  Humidity:");
+  while (!Serial);
+  dht.begin();
   adc_init();
   irrecv.enableIRIn();
   DDRA = 0b01111000;        // Setting step motor pins to output 
   DDRC = 0b11110000;        // Setting LED pins to output
-  DDRL = 0b10000000;
+  DDRL = 0b00000111;
   *ledArray = lights[State];
 }
 
 void loop() {
+  delay(5);
   Remote_Read();
   switch(State)
   {
@@ -106,9 +107,10 @@ void loop() {
 
   if (LastState != State){
     Display();
-    Fan();
     Record_Transition();
     LastState = State;
+    delay(2);
+    Fan();
   }
 }
 
@@ -140,6 +142,41 @@ void print2digits(int number) {
   Serial.print(number);
 }
 
+void adc_init()
+{
+   // setup the A register
+  *my_ADCSRA |= 0x85;
+  *my_ADCSRA &= 0x87;
+  // setup the B register
+  *my_ADCSRB &= (0x01 << 6);
+  // setup the MUX Register
+  *my_ADMUX |= (0x01 << 7); //sets MSB bit to 1, REFS1
+  *my_ADMUX &= 0x9C; //sets REFS0 and ADLAR for right justification
+  //disabling digital input for all pins
+  *my_DIDR0 |= 0x81; //disables all digital input pins for buffer
+}
+  
+unsigned int adc_read()
+{  
+  // clear the channel selection bits (MUX 4:0)
+  *my_ADMUX &= 0xE0;
+
+  // clear the channel selection bits (MUX 5) //MUX 5 is in the ADCSRB register
+  *my_ADCSRB &= 0x77;
+  
+  // set the channel selection bits
+  *my_ADMUX = *my_ADMUX | 0b01000001;
+  
+  // set bit 6 of ADCSRA to 1 to start a conversion
+  *my_ADCSRA |= 0x40;
+  
+  // wait for the conversion to complete
+  while (( * my_ADCSRA & 0x40) != 0); 
+
+  // return the result in the ADC data register
+  return *my_ADC_DATA; 
+}
+
 void Remote_Read(){
   if(irrecv.decode(&results)){
     switch(results.value)
@@ -164,9 +201,12 @@ void Remote_Read(){
 
       case 0xFFA25D:    // Power Button pressed
         if(State == 0){
-          State = 1;
-          *ledArray = lights[State];
-          break; 
+          if(Water_Check())break;
+          else{
+            State = 1;
+            *ledArray = lights[State];
+            break;
+          } 
         }
         else{
           State = 0;
@@ -180,17 +220,17 @@ void Remote_Read(){
 
 void Fan(){
   if(State == 3){
-    *fanPort = on;         //Turn on fan
+    *fanPort = Enable;         //Turn on fan
   }
   else{
-    *fanPort = off;  //Turn off fan
+    *fanPort = Disable;  //Turn off fan
   }
 }
 
 void Display(){
   if(State == 0){
     lcd.setCursor(0, 1); 
-    lcd.print("            ");
+    lcd.print("             ");
   }
   else if(State == 1 || State == 3){
     lcd.setCursor(0, 1);
@@ -236,13 +276,11 @@ bool Temp_Check(){
   if(State == 1 && dht.readTemperature(true) > temp_Threshold){
     State = 3;
     *ledArray = lights[State];
-    Fan();
     change = true;
   }
   else if(State == 3 && dht.readTemperature(true) < temp_Threshold){
     State = 1;
     *ledArray = lights[State];
-    Fan();
     change = true;
   }
   return change;
@@ -250,7 +288,7 @@ bool Temp_Check(){
 
 bool Water_Check(){
   bool change = false;
-  if((State == 1 || State == 3) && adc_read() < 450){
+  if((State == 0 || State == 1 || State == 3) && adc_read() < 450){
     State = 2;
     *ledArray = lights[State];
     change = true;
@@ -261,39 +299,4 @@ bool Water_Check(){
     change = true;
   }
   return change;
-}
-
-void adc_init()
-{
-   // setup the A register
-  *my_ADCSRA |= 0x85;
-  *my_ADCSRA &= 0x87;
-  // setup the B register
-  *my_ADCSRB &= (0x01 << 6);
-  // setup the MUX Register
-  *my_ADMUX |= (0x01 << 7); //sets MSB bit to 1, REFS1
-  *my_ADMUX &= 0x9C; //sets REFS0 and ADLAR for right justification
-  //disabling digital input for all pins
-  *my_DIDR0 |= 0x81; //disables all digital input pins for buffer
-}
-  
-unsigned int adc_read()
-{  
-  // clear the channel selection bits (MUX 4:0)
-  *my_ADMUX &= 0xE0;
-
-  // clear the channel selection bits (MUX 5) //MUX 5 is in the ADCSRB register
-  *my_ADCSRB &= 0x77;
-  
-  // set the channel selection bits
-  *my_ADMUX = *my_ADMUX | 0b01000001;
-  
-  // set bit 6 of ADCSRA to 1 to start a conversion
-  *my_ADCSRA |= 0x40;
-  
-  // wait for the conversion to complete
-  while (( * my_ADCSRA & 0x40) != 0); 
-
-  // return the result in the ADC data register
-  return *my_ADC_DATA; 
 }
